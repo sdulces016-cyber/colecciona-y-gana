@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COLECCIONA Y GANA - Sistema Completo</title>
+    <title>COLECCIONA Y GANA</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Pacifico&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -299,6 +299,15 @@
         
         .btn.danger {
             background: var(--error);
+        }
+        
+        .btn.help {
+            background: var(--candy-pink);
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(255, 105, 180, 0.3);
         }
         
         .btn:hover { 
@@ -641,6 +650,24 @@
             font-size: 12px;
         }
 
+        .help-contact {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .help-contact h4 {
+            margin-bottom: 10px;
+        }
+
+        .help-contact a {
+            color: white;
+            text-decoration: underline;
+        }
+
         @keyframes slideDown {
             from { transform: translateY(-50px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
@@ -732,6 +759,9 @@
     <div class="candy-decoration candy-decoration-1"></div>
     <div class="candy-decoration candy-decoration-2"></div>
     <div class="candy-decoration candy-decoration-3"></div>
+
+    <!-- Botón de Ayuda Flotante -->
+    <button class="btn help" onclick="showHelp()">¿Necesitas Ayuda?</button>
 
     <header>
         <h1>COLECCIONA Y GANA</h1>
@@ -863,6 +893,28 @@
         </div>
     </div>
 
+    <!-- Modal de Ayuda -->
+    <div class="modal-back" id="helpModal">
+        <div class="modal">
+            <div class="modal-content">
+                <h3 style="margin-bottom: 10px; color: #2D3748;">📞 ¿Necesitas Ayuda?</h3>
+                <p style="color: #4A5568; margin-bottom: 20px;">Estamos aquí para ayudarte con cualquier duda o problema.</p>
+                
+                <div class="help-contact">
+                    <h4>📧 Contáctanos</h4>
+                    <p>Si tienes problemas con tu solicitud o necesitas ayuda, escríbenos a:</p>
+                    <h3><a href="mailto:sdulces016@gmail.com">sdulces016@gmail.com</a></h3>
+                    <p style="margin-top: 15px; font-size: 14px;">Te responderemos lo más pronto posible</p>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn secondary" onclick="closeHelpModal()" style="flex: 1;">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para el formulario -->
     <div class="modal-back" id="formModal">
         <div class="modal">
             <div class="modal-content">
@@ -1012,6 +1064,15 @@
                 image: 'https://images.unsplash.com/photo-1518638150340-f706e86654de?w=140&h=140&fit=crop&crop=center'
             }
         ];
+
+        // Funciones para el botón de ayuda
+        function showHelp() {
+            document.getElementById('helpModal').style.display = 'flex';
+        }
+
+        function closeHelpModal() {
+            document.getElementById('helpModal').style.display = 'none';
+        }
 
         // Inicializar datos
         function initData() {
@@ -1543,7 +1604,7 @@
             currentSolicitud = null;
         }
 
-        // Aprobar desde el modal
+        // Aprobar desde el modal - CORREGIDO
         function approveFromModal() {
             if (!currentSolicitud) return;
             
@@ -1567,13 +1628,14 @@
             }
         }
 
-        // Rechazar desde el modal
+        // Rechazar desde el modal - CORREGIDO
         function rejectFromModal() {
             if (!currentSolicitud) return;
             
             const motivo = prompt('Ingresa el motivo del rechazo:');
             if (motivo === null) return;
             
+            // AQUÍ ESTÁ LA CORRECCIÓN - ahora sí guarda el mensaje
             const success = updateSolicitud(currentSolicitud.id, {
                 status: 'rejected',
                 fechaRevision: new Date().toISOString(),
@@ -1582,7 +1644,7 @@
             });
             
             if (success) {
-                alert('Solicitud rechazada exitosamente');
+                alert('Solicitud rechazada exitosamente. El cliente verá el motivo cuando consulte su estado.');
                 closePhotoModal();
                 loadAdminRequests();
             } else {
@@ -1663,7 +1725,7 @@
             container.innerHTML = html;
         }
 
-        // Mostrar resultados de estado
+        // Mostrar resultados de estado - MEJORADO para mostrar mensajes
         function displayStatusResults(solicitudes) {
             const container = document.getElementById('status-results');
             
@@ -1731,8 +1793,16 @@
                     html += `
                         <div class="approved-message">
                             <h3>¡Felicidades!</h3>
-                            <p>Tu solicitud ha sido aprobada. ${solicitud.mensajeAdmin || 'Puedes recoger tu figura especial.'}</p>
+                            <p>${solicitud.mensajeAdmin || 'Tu solicitud ha sido aprobada. Puedes recoger tu figura especial.'}</p>
                             <div class="pickup-date">Fecha de recogida: ${fechaRecogida}</div>
+                        </div>
+                    `;
+                } else if (solicitud.status === 'rejected') {
+                    html += `
+                        <div class="rejected-message" style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 10px; margin-top: 15px;">
+                            <h4>❌ Solicitud Rechazada</h4>
+                            <p><strong>Motivo:</strong> ${solicitud.mensajeAdmin || 'Lo sentimos, tu colección no cumple con los requisitos de la promoción.'}</p>
+                            <p style="margin-top: 10px; font-size: 14px;">Si tienes dudas, contáctanos usando el botón de ayuda.</p>
                         </div>
                     `;
                 }
@@ -1743,7 +1813,7 @@
             container.innerHTML = html;
         }
 
-        // Funciones globales para los botones de acción
+        // Funciones globales para los botones de acción - CORREGIDAS
         function approveRequest(id) {
             const fechaRecogida = prompt('Ingresa la fecha para recoger la figura (YYYY-MM-DD):');
             if (!fechaRecogida) return;
@@ -1776,7 +1846,7 @@
             });
             
             if (success) {
-                alert('Solicitud rechazada exitosamente');
+                alert('Solicitud rechazada exitosamente. El cliente verá el motivo cuando consulte su estado.');
                 loadAdminRequests();
             } else {
                 alert('Error al rechazar la solicitud');
@@ -1974,6 +2044,7 @@
                         if (this.id === 'formModal') closeModal();
                         if (this.id === 'photoModal') closePhotoModal();
                         if (this.id === 'collectionModal') closeCollectionModal();
+                        if (this.id === 'helpModal') closeHelpModal();
                     }
                 });
             });
